@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mood & Music Matcher</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: slideDown 0.6s ease-out;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: #1a365d;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            color: #4a5568;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            animation: fadeIn 0.8s ease-out;
+        }
+
+        .card h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mood-selector {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .mood-btn {
+            padding: 20px;
+            border: 2px solid #e2e8f0;
+            border-radius: 12px;
+            background: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .mood-btn:hover {
+            border-color: #3182ce;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(49, 130, 206, 0.15);
+        }
+
+        .mood-btn.active {
+            background: #3182ce;
+            color: white;
+            border-color: #3182ce;
+        }
+
+        .mood-icon {
+            font-size: 2rem;
+        }
+
+        .log-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, #3182ce 0%, #2c5aa0 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.05rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+        }
+
+        .log-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(49, 130, 206, 0.4);
+        }
+
+        .log-btn:active {
+            transform: translateY(0);
+        }
+
+        .recommendations {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .recommendation-item {
+            padding: 16px;
+            background: #f7fafc;
+            border-radius: 10px;
+            border-left: 4px solid #3182ce;
+            animation: slideIn 0.5s ease-out;
+        }
+
+        .recommendation-item.hidden {
+            display: none;
+        }
+
+        .rec-title {
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 4px;
+        }
+
+        .rec-artist {
+            font-size: 0.9rem;
+            color: #718096;
+        }
+
+        .rec-type {
+            display: inline-block;
+            margin-top: 8px;
+            font-size: 0.8rem;
+            background: #bee3f8;
+            color: #1a365d;
+            padding: 4px 10px;
+            border-radius: 12px;
+        }
+
+        .history-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+            gap: 16px;
+            margin-bottom: 40px;
+        }
+
+        .history-item {
+            background: white;
+            padding: 16px;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        .history-mood {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .history-time {
+            font-size: 0.85rem;
+            color: #718096;
+            margin-bottom: 8px;
+        }
+
+        .history-label {
+            font-weight: 600;
+            color: #1a365d;
+        }
+
+        .chart-container {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.07);
+            animation: fadeIn 0.8s ease-out 0.2s both;
+        }
+
+        .chart-container h2 {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #1a365d;
+            margin-bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .mood-stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+            padding: 16px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .stat-mood {
+            font-size: 2rem;
+            margin-bottom: 8px;
+        }
+
+        .stat-count {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #0c4a6e;
+            margin-bottom: 4px;
+        }
+
+        .stat-label {
+            font-size: 0.9rem;
+            color: #0369a1;
+            font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 40px 20px;
+            color: #718096;
+        }
+
+        .empty-state-icon {
+            font-size: 3rem;
+            margin-bottom: 12px;
+        }
+
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+            to {
+                opacity: 1;
+            }
+        }
+
+        @media (max-width: 768px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .header h1 {
+                font-size: 1.8rem;
+            }
+
+            .history-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .mood-selector {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎵 Mood & Music Matcher</h1>
+            <p>Log your mood and discover the perfect playlist</p>
+        </div>
+
+        <div class="main-grid">
+            <!-- Mood Logger -->
+            <div class="card">
+                <h2>
+                    <span>😊</span>
+                    <span>How are you feeling?</span>
+                </h2>
+                <div class="mood-selector">
+                    <button class="mood-btn" data-mood="happy">
+                        <span class="mood-icon">😊</span>
+                        <span>Happy</span>
+                    </button>
+                    <button class="mood-btn" data-mood="excited">
+                        <span class="mood-icon">🤩</span>
+                        <span>Excited</span>
+                    </button>
+                    <button class="mood-btn" data-mood="tired">
+                        <span class="mood-icon">😴</span>
+                        <span>Tired</span>
+                    </button>
+                    <button class="mood-btn" data-mood="stressed">
+                        <span class="mood-icon">😰</span>
+                        <span>Stressed</span>
+                    </button>
+                </div>
+                <button class="log-btn" id="logMoodBtn">Log Mood</button>
+            </div>
+
+            <!-- Music Recommendations -->
+            <div class="card">
+                <h2>
+                    <span>🎶</span>
+                    <span>Recommended for You</span>
+                </h2>
+                <div class="recommendations" id="recommendations">
+                    <div class="empty-state">
+                        <div class="empty-state-icon">🎧</div>
+                        <p>Select a mood and log it to get personalized recommendations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Mood History -->
+        <div class="card" style="margin-bottom: 30px;">
+            <h2>
+                <span>📅</span>
+                <span>Recent Mood History</span>
+            </h2>
+            <div class="history-grid" id="historyGrid">
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">📝</div>
+                    <p>No mood logs yet. Start by logging your current mood!</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Mood Statistics -->
+        <div class="chart-container">
+            <h2>
+                <span>📊</span>
+                <span>Mood Insights</span>
+            </h2>
+            <div class="mood-stats" id="moodStats">
+                <div class="empty-state" style="grid-column: 1 / -1;">
+                    <div class="empty-state-icon">📈</div>
+                    <p>Log your moods to see insights and patterns</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
